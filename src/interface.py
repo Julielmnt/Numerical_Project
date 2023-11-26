@@ -3,74 +3,79 @@
 
 import streamlit as st
 import ee_interface_function as eef
-import tempfile
 import os
+
+class SessionState:
+    def __init__(self):
+        self.authenticated = False
+        self.mail = 'jlimonet@ee-glourb.iam.gserviceaccount.com'
+        self.key = 'ee-glourb-58e556f00841.json'
+        self.uploaded_key_path = ''
+        self.key_path = ''
 
 
 class HomePage:
-    def __init__(self):
+    def __init__(self , session_state):
         self.title = "Authentification"
+        self.session_state = session_state
 
     def show(self):
         st.title(self.title)
-        st.write("This is some content")
+        st.write("This is the Home Page for authentification")
 
-        if "user_input_1" not in st.session_state:
-            st.session_state.user_input_1 = ""
-        if "user_input_2" not in st.session_state:
-            st.session_state.user_input_2 = ""
-        if "user_input_2" not in st.session_state:
-            st.session_state.uploaded_file = ""
+        if "mail" not in st.session_state:
+            st.session_state.mail = 'jlimonet@ee-glourb.iam.gserviceaccount.com'
+        if "key" not in st.session_state:
+            st.session_state.key = 'ee-glourb-58e556f00841.json'
+        if "uploaded_key" not in st.session_state:
+            st.session_state.uploaded_key = ""
 
-        st.title("Please Enter your credentials")
-        user_input_1 = st.text_input("mail", value=st.session_state.user_input_1)
-        user_input_2 = st.text_input("key", value=st.session_state.user_input_2)
+        mail = st.text_input("mail", value=st.session_state.mail)
+        key = st.text_input("key", value=st.session_state.key)
+        uploaded_key = st.file_uploader("Upload file", type=["json"])
 
-        # @st.cache_data()
-        # def get_uploaded_file(uploaded_file):
-        #     return uploaded_file
+        if st.button("Authenticate"):
+            if uploaded_key:
+                self.session_state.uploaded_key_path = eef.temp_key_path(uploaded_key)
 
-        uploaded_file = st.file_uploader("Upload file", type=["json"])
-        # uploaded_file_cached = get_uploaded_file(uploaded_file)
-
-        if st.button("Run Function"):
-            if uploaded_file:
-                # Create a temporary file
-                temp_file = tempfile.NamedTemporaryFile(delete=False)
-
-                # Write uploaded file content to the temporary file
-                temp_file.write(uploaded_file.read())
-
-                # Get the path of the temporary file
-                uploaded_file_path = temp_file.name
-
-                # Close the temporary file
-                temp_file.close()
-            else:
-                uploaded_file_path = ""
-
-            if user_input_2:
-                file_path = os.path.abspath(
-                    os.path.join(os.getcwd(), str(user_input_2))
+            if key:
+                self.session_state.key_path = os.path.abspath(
+                    os.path.join(os.getcwd(), str(key))
                 )
 
-            if user_input_1 and user_input_2 or user_input_1 and uploaded_file:
-                if eef.credentials(str(user_input_1), file_path, uploaded_file_path):
+            if mail and key or mail and uploaded_key:
+                if eef.credentials(str(mail), self.session_state.key_path, self.session_state.uploaded_key_path):
                     st.write("Authentication successful!")
+                    self.session_state.authenticated = True
                 else:
                     st.write("Authentication failed")
             else:
-                st.write("Please enter mail, key, and upload a JSON file.")
+                st.write("Please enter mail and key, or mail and upload a JSON file.")
         else:
-            st.write("Please enter a value.")
-
+            st.write("Please enter your credentials.")
 
 class PageOne:
-    def __init__(self):
-        self.title = "Page Two"
+    def __init__(self, session_state):
+        self.title = "Page One"
+        self.shp_file = None
+        self.ee_project_name = 'ee-glourb'
+        self.dgo_features = None
+        self.session_state = session_state
 
-    def show(self):
+    def show(self):        
         st.title(self.title)
+        self.ee_project_name = st.text_input("Project Name", value=self.ee_project_name)
+        self.shp_file = st.file_uploader("Upload Shape file", type=["shp"])
+
+        
+        if self.shp_file:
+            shp_key_path = eef.temp_key_path(self.shp_file)
+            self.dgo_assetId, self.dgo_features = eef.assets(shp_key_path, ee_project_name=self.ee_project_name, simplify_tolerance=15)
+        
+        if self.dgo_features is not None:
+            if st.button("Load Map"):
+                map_object = eef.plot_map(self.dgo_features)
+                st.pydeck_chart(map_object)  # Or use st.map(map_object) if applicable
 
 
 class PageTwo:
@@ -84,18 +89,34 @@ class PageTwo:
 
 class MultiPageApp:
     def __init__(self):
-        self.pages = {"Page One": PageOne(), "Page Two": PageTwo()}
+        self.session_state = SessionState()
+        self.pages = {"Authentication": HomePage(self.session_state),
+                      "Page One": PageOne(self.session_state),
+                      "Page Two": PageTwo()}
 
     def run(self):
-        st.title("Multi-Page Streamlit App")
-        HomePage().show()
-        selection = st.sidebar.button("Page One")  # Button for Page One
-        if selection:
-            self.pages["Page One"].show()
+        st.title("GEE Interface")
+        selection = None
+        for page_name in self.pages.keys():
+            if st.sidebar.button(page_name):
+                selection = page_name
 
-        selection = st.sidebar.button("Page Two")  # Button for Page Two
-        if selection:
-            self.pages["Page Two"].show()
+        # if selection == "Authentication"  or selection == None:
+        #     self.pages["Authentication"].show()
+
+        # if self.session_state.authenticated and selection:
+        #     self.pages[selection].show()
+
+        # if not self.session_state.authenticated and selection:
+        #     st.write("Please authenticate to access this page.")
+
+
+        if not self.session_state.authenticated and selection != "Authentication":
+            self.pages["Authentication"].show()
+        elif selection:
+            self.pages[selection].show()
+        else:
+            st.write("Please select a page.")
 
 
 def run():
