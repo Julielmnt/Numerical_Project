@@ -4,6 +4,7 @@
 import streamlit as st
 import ee_interface_function as eef
 import os
+import argparse
 
 class SessionState:
     def __init__(self):
@@ -95,6 +96,12 @@ class MultiPageApp:
                       "Page Two": PageTwo()}
 
     def run(self):
+        parser = argparse.ArgumentParser(
+        "Google Earth Engine Interface",
+        description="Interface for Google Earth Engine"
+          "You can Authenticate and then load your DGOs and perform your analysis by choosing layers and metrics."
+          "You then can visualize and download your analysis.")
+         
         st.title("GEE Interface")
         selection = None
         for page_name in self.pages.keys():
