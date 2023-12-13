@@ -6,17 +6,18 @@ import ee_interface_function as eef
 import os
 import argparse
 
+
 class SessionState:
     def __init__(self):
         self.authenticated = False
-        self.mail = 'jlimonet@ee-glourb.iam.gserviceaccount.com'
-        self.key = 'ee-glourb-58e556f00841.json'
-        self.uploaded_key_path = ''
-        self.key_path = ''
+        self.mail = "jlimonet@ee-glourb.iam.gserviceaccount.com"
+        self.key = "ee-glourb-58e556f00841.json"
+        self.uploaded_key_path = ""
+        self.key_path = ""
 
 
 class HomePage:
-    def __init__(self , session_state):
+    def __init__(self, session_state):
         self.title = "Authentification"
         self.session_state = session_state
 
@@ -25,9 +26,9 @@ class HomePage:
         st.write("This is the Home Page for authentification")
 
         if "mail" not in st.session_state:
-            st.session_state.mail = 'jlimonet@ee-glourb.iam.gserviceaccount.com'
+            st.session_state.mail = "jlimonet@ee-glourb.iam.gserviceaccount.com"
         if "key" not in st.session_state:
-            st.session_state.key = 'ee-glourb-58e556f00841.json'
+            st.session_state.key = "ee-glourb-58e556f00841.json"
         if "uploaded_key" not in st.session_state:
             st.session_state.uploaded_key = ""
 
@@ -45,7 +46,11 @@ class HomePage:
                 )
 
             if mail and key or mail and uploaded_key:
-                if eef.credentials(str(mail), self.session_state.key_path, self.session_state.uploaded_key_path):
+                if eef.credentials(
+                    str(mail),
+                    self.session_state.key_path,
+                    self.session_state.uploaded_key_path,
+                ):
                     st.write("Authentication successful!")
                     self.session_state.authenticated = True
                 else:
@@ -55,24 +60,28 @@ class HomePage:
         else:
             st.write("Please enter your credentials.")
 
+
 class PageOne:
     def __init__(self, session_state):
         self.title = "Page One"
         self.shp_file = None
-        self.ee_project_name = 'ee-glourb'
+        self.ee_project_name = "ee-glourb"
         self.dgo_features = None
         self.session_state = session_state
 
-    def show(self):        
+    def show(self):
         st.title(self.title)
         self.ee_project_name = st.text_input("Project Name", value=self.ee_project_name)
         self.shp_file = st.file_uploader("Upload Shape file", type=["shp"])
 
-        
         if self.shp_file:
             shp_key_path = eef.temp_key_path(self.shp_file)
-            self.dgo_assetId, self.dgo_features = eef.assets(shp_key_path, ee_project_name=self.ee_project_name, simplify_tolerance=15)
-        
+            self.dgo_assetId, self.dgo_features = eef.assets(
+                shp_key_path,
+                ee_project_name=self.ee_project_name,
+                simplify_tolerance=15,
+            )
+
         if self.dgo_features is not None:
             if st.button("Load Map"):
                 map_object = eef.plot_map(self.dgo_features)
@@ -91,17 +100,13 @@ class PageTwo:
 class MultiPageApp:
     def __init__(self):
         self.session_state = SessionState()
-        self.pages = {"Authentication": HomePage(self.session_state),
-                      "Page One": PageOne(self.session_state),
-                      "Page Two": PageTwo()}
+        self.pages = {
+            "Authentication": HomePage(self.session_state),
+            "Page One": PageOne(self.session_state),
+            "Page Two": PageTwo(),
+        }
 
     def run(self):
-        parser = argparse.ArgumentParser(
-        "Google Earth Engine Interface",
-        description="Interface for Google Earth Engine"
-          "You can Authenticate and then load your DGOs and perform your analysis by choosing layers and metrics."
-          "You then can visualize and download your analysis.")
-         
         st.title("GEE Interface")
         selection = None
         for page_name in self.pages.keys():
@@ -117,7 +122,6 @@ class MultiPageApp:
         # if not self.session_state.authenticated and selection:
         #     st.write("Please authenticate to access this page.")
 
-
         if not self.session_state.authenticated and selection != "Authentication":
             self.pages["Authentication"].show()
         elif selection:
@@ -127,6 +131,15 @@ class MultiPageApp:
 
 
 def run():
+    parser = argparse.ArgumentParser(
+            "Google Earth Engine Interface",
+            description="Interface for Google Earth Engine"
+            "You can Authenticate and then load your DGOs and perform your analysis by choosing layers and metrics."
+            "\n You then can visualize and download your analysis.",
+        )
+
+    args = parser.parse_args()
+
     app = MultiPageApp()
     app.run()
 

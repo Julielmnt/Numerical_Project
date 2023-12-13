@@ -1,0 +1,34 @@
+[project]
+name = "GEE_interface" #what you write after pip install
+version = "0.0.1" # 0.0.x generaly means it is unstable
+authors = [
+  { name="Julie Limonet", email="julie.limonet@gmail.com" },
+]
+# usually a one liner
+description = "Streamlit interface for Google Earth Engine"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {file = "LICENSE"}
+keywords = ["Interface", "Google Earth Engine", "GEE", "Google Earth Engine interface" ]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: GNU GPLv3 License",
+    "Operating System :: Windows",
+]
+
+dependencies = [
+  #"streamlit > 1.28.2" 
+]
+
+
+[project.urls]
+Homepage = "https://example.com"
+Documentation = "https://readthedocs.org"
+Repository = "https://github.com/me/spam.git"
+Changelog = "https://github.com/me/spam/blob/master/CHANGELOG.md"
+
+[project.scripts]
+GEE_interface = 'interface:run'
+
+
+
