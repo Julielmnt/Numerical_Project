@@ -18,7 +18,14 @@ jobs:
           # Optional - x64 or x86 architecture, defaults to x64
           architecture: 'x64'
       # You can test your matrix by printing the current Python version
-      - name: Display Python version
+      - name: Build
         run: |
           pip install --upgrade build
           python -m build
+
+      - name: Run tests 
+        run: |
+          pip install -r requirements_dev.txt
+          coverage run -m pytest && coverage report -m
+
+
