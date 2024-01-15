@@ -10,6 +10,7 @@ from pages.PageOne import PageOne
 from pages.PageTwo import PageTwo
 from streamlit.runtime.scriptrunner import RerunData, RerunException
 from streamlit.source_util import get_pages
+
 # from streamlit_extras.switch_page_button import switch_page
 
 # def standardize_name(name: str) -> str:
@@ -66,7 +67,7 @@ class MultiPageApp:
     @st.cache_data(persist=True)
     def get_session_state():
         return {
-            "authenticated": False,
+            "authenticated": True,
             "shared": True,
             "mail": "jlimonet@ee-glourb.iam.gserviceaccount.com",
             "key": "ee-glourb-58e556f00841.json",
@@ -77,7 +78,7 @@ class MultiPageApp:
 
     def run(self):
         st.title("GEE Interface")
-        selection = None
+        # selection = None
 
 
         # for page_name in self.pages.keys():
