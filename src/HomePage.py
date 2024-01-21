@@ -5,6 +5,7 @@ import streamlit as st
 import ee_interface_function as eef
 import os
 import argparse
+import ee
 # from pages.Authentication import Authentication
 # from pages.PageOne import PageOne
 # from pages.PageTwo import PageTwo
@@ -45,7 +46,8 @@ if __name__ == "__main__":
     session_state = st.session_state 
     if "authenticated" not in st.session_state:
         st.session_state['authenticated'] = False
-        
+        st.session_state['dgo_features'] = None
+
     app = MultiPageApp()
     
     app.run()

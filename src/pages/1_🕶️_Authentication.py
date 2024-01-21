@@ -4,7 +4,7 @@ import os
 
 class Authentication:
     def __init__(self, session_state):
-        self.title = "authentication"
+        self.title = "Authentication"
         self.session_state = session_state
 
     def show(self):
