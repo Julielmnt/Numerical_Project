@@ -6,22 +6,12 @@ import ee_interface_function as eef
 import os
 import argparse
 import ee
-# from pages.Authentication import Authentication
-# from pages.PageOne import PageOne
-# from pages.PageTwo import PageTwo
 from streamlit.runtime.scriptrunner import RerunData, RerunException
 from streamlit.source_util import get_pages
 
 class MultiPageApp:
     def __init__(self):
         self.session_state = self.get_session_state()
-        # self.pages = {
-        #     "Authentication": Authentication(self.session_state),
-        #     "Page One": PageOne(self.session_state),
-        #     "Page Two": PageTwo(self.session_state),
-        # }
-        # self.selected_page = st.sidebar.selectbox("Select a page", list(self.pages.keys()))
-
 
     @staticmethod
     @st.cache_data(persist=True)
@@ -36,10 +26,12 @@ class MultiPageApp:
 
 
     def run(self):
+        image_path = '..\logo.svg'  
+        st.image(image_path,  use_column_width=True, width=50)
+
         st.title("GEE Interface")
         st.write("Hello")
         st.write(session_state)
-        # self.pages[self.selected_page].show()
 
 if __name__ == "__main__":
     
@@ -47,6 +39,9 @@ if __name__ == "__main__":
     if "authenticated" not in st.session_state:
         st.session_state['authenticated'] = False
         st.session_state['dgo_features'] = None
+        st.session_state['dgo_assetId'] = None
+        st.session_state['run'] = False
+        st.session_state['get_results'] = False
 
     app = MultiPageApp()
     

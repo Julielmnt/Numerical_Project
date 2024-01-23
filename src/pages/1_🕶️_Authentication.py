@@ -8,9 +8,11 @@ class Authentication:
         self.session_state = session_state
 
     def show(self):
+        image_path = '..\logo.svg'  
+        st.image(image_path,  use_column_width=True, width=5)
         try:
             st.title(self.title)
-            st.write("This is the Home Page for authentication")
+            st.write("Here you can authenticate to Earth Engine with your mail and key (a json file)")
 
             if "mail" not in st.session_state.keys():
                 st.session_state['mail'] = "jlimonet@ee-glourb.iam.gserviceaccount.com"
@@ -19,9 +21,9 @@ class Authentication:
             if "uploaded_key" not in st.session_state.keys():
                 st.session_state['uploaded_key_path'] = ""
 
-            mail = st.text_input("mail", value=st.session_state['mail'])
-            key = st.text_input("key", value=st.session_state['key'])
-            uploaded_key = st.file_uploader("Upload file", type=["json"])
+            mail = st.text_input("mail", value=st.session_state['mail'], help = 'Your mail to authenticate, else use the default value')
+            key = st.text_input("key", value=st.session_state['key'], help = 'If your json key is in the same folder as the app, else use the file uploader')
+            uploaded_key = st.file_uploader("Upload file", type=["json"], help = 'Here you can upload your json file !')
 
             if st.button("Authenticate"):
                 if uploaded_key:
@@ -39,10 +41,11 @@ class Authentication:
                         self.session_state['uploaded_key_path'],
                     ):
                         st.session_state['mail'] = mail
-                        st.write("Authentication successful!")
+                        st.write("Authentication successful ! ")
+                        st.write("You can now go about your business :dark_sunglasses:")
                         self.session_state['authenticated'] = True
-                        st.write(self.session_state['authenticated'])
-                        st.write(session_state)
+                        # st.write(self.session_state['authenticated'])
+                        # st.write(session_state)
                     else:
                         st.write("Authentication failed")
                 else:
@@ -54,7 +57,6 @@ class Authentication:
             st.error(f"Error: {str(e)}")
 
     def run(self):
-        st.title("GEE Interface")
         self.show()
 
 if __name__ == "__main__":        

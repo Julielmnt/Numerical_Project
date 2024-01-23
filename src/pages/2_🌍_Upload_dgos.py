@@ -8,7 +8,7 @@ class PageOne:
     cities_data = eef.cities('cities.txt')
 
     def __init__(self, session_state):
-        self.title = "Loading DGOs"
+        self.title = "Upload DGOs"
         self.shp_file = None
         self.ee_project_name = "ee-glourb"
         self.dgo_features = None
@@ -35,40 +35,39 @@ class PageOne:
         folium_static(m)
 
     def show(self):
-        st.title(self.title)
-        dgo_dataset_path = 'dgos_dataset.txt'
+        image_path = '..\logo.svg'  
+        st.image(image_path,  use_column_width=True, width=5)
 
-        self.town = st.selectbox('Town', self.list_cities)
-        self.river = st.text_input('River')
+        st.title(self.title)
+        st.write('Here you can upload your DGOs or get them directly from GEE is they\'re already loaded (this is faster)')
+
+        self.town = st.selectbox('Town', self.list_cities, help = 'Choose the town you are working on')
+        self.river = st.text_input('River', help = 'The name of your river')
 
         if self.river:
-            self.matching_lines = eef.dgo_to_search(self.town, self.river, dgo_dataset_path)
+            self.matching_lines, self.matching_times = eef.dgo_to_search(self.town, self.river)
             if len(self.matching_lines) != 0:
-                st.write('Here are the dgos already loaded as assets for the same town and river:')
-                self.matching_lines = eef.dgo_to_search(self.town, self.river, dgo_dataset_path, print=True)
-
+                st.write('Here are the dgos already loaded in GEE as assets for the same town or river:')
+                for i in range(len(self.matching_lines)):
+                    st.markdown(f'<span style="color:green">{i+1}</span>- id of the asset : {self.matching_lines[i]} \ update time = {self.matching_times[i]}', unsafe_allow_html=True)
                 st.write('Select an action:')
-                self.action = st.radio('', ['Use already uploaded DGOs', 'Upload my own DGOs'])
+                self.action = st.selectbox('Choose an action:', ['Choose an action', 'Use already uploaded DGOs', 'Upload my own DGOs'] , help = 'You can use an asset already uploaded (from the list above) or upload your own !')
 
                 if self.action == 'Use already uploaded DGOs':
                     if len(self.matching_lines) > 1:
-                        i = st.number_input('Number of the asset you want', 1, len(self.matching_lines), step=1)
-                        self.id = self.matching_lines[i - 1].strip('|').split('|')[3]
-                        st.write(f'You\'re using the asset number {i} with the id: {self.id}')
-                        self.session_state['dgo_features'] = ee.FeatureCollection(self.id)
-                        st.write({self.session_state['dgo_features']})
+                        i = st.number_input('Number of the asset you want from the list above', 1, len(self.matching_lines), step=1, value = None)
+                        if i is not None:
+                            self.id = self.matching_lines[i - 1]
+                            st.write(f'You\'re using the asset number {i} with the id: {self.id}')
+                            
+                            self.session_state['dgo_assetId'] = self.id
+                            self.session_state['dgo_features'] = ee.FeatureCollection(self.id)
 
                     elif len(self.matching_lines) == 1:
                         i = 1
                         
                     else:
                         i = None
-
-                    if i is not None:
-                        self.id = self.matching_lines[i - 1].strip('|').split('|')[3]
-                        st.write(f'You\'re using the asset number {i} with the id: {self.id}')
-                        self.session_state['dgo_features'] = ee.FeatureCollection(self.id)
-                        st.write({self.session_state['dgo_features']})
 
                 elif self.action == 'Upload my own DGOs':
                     st.write('Do you want to replace an already loaded asset? (in order to not overcrowd the server)')
@@ -77,33 +76,31 @@ class PageOne:
                     if replace_asset == 'Yes':
                         if len(self.matching_lines) > 1:
                             i = st.number_input('Number of the asset you want to remove', 1, len(self.matching_lines), step=1)
-                            id_to_remove = self.matching_lines[i - 1].strip('|').split('|')[3]
-                            update_time = self.matching_lines[i - 1].strip('|').split('|')[2]
+                            id_to_remove = self.matching_lines[i - 1]
+                            update_time = self.matching_lines[i - 1]
                         elif len(self.matching_lines) == 1:
                             i = 1
-                            id_to_remove = self.matching_lines[i - 1].strip('|').split('|')[3]
-                            update_time = self.matching_lines[i - 1].strip('|').split('|')[2]
-                            st.write(self.matching_lines)
-                            st.write(id_to_remove)
-                            st.write(update_time)
+                            id_to_remove = self.matching_lines[i - 1]
+                            update_time = self.matching_lines[i - 1]
                         else:
                             i = None
 
                         if i is not None:
-                            st.write(f'You\'re removing the asset number {i} with the id: {id_to_remove}')
+                            st.write(f'You\'re removing the asset number {i+1} with the id: {id_to_remove}')
                             if st.button('Confirm'):
-                                eef.remove_line_by_criteria(dgo_dataset_path, self.town, self.river, id_to_remove, update_time)
+                                eef.remove_line_by_criteria(id_to_remove)
+                                st.markdown('<span style="color:green">Thanks for keeping the server clean !</span> :grin:' , unsafe_allow_html=True)
                                 st.write('Let\'s now load the dgos !')
-                                self.shp_file = st.file_uploader("Upload Shape file", type=["shp"])
+                                st.write('Keep in mind that this is going to take time :sweat_smile:')
+                                self.shp_file = st.file_uploader("Upload Shape file", accept_multiple_files = True, help = 'Here you can upload your dgos, meaning the .shp of course but also the .shx, .cpg, .dbf, .prj and .qmd')
 
                     elif replace_asset == 'No':
-                        self.shp_file = st.file_uploader("Upload Shape file", type=["shp"])
+                        self.shp_file = st.file_uploader("Upload Shape file", accept_multiple_files = True)
 
             else : 
                 self.shp_file = st.file_uploader("Upload Shape file", accept_multiple_files = True)
 
         if self.shp_file:
-            import io
             import os
             st.write(self.shp_file) 
             from glourbee import assets_management
@@ -120,23 +117,19 @@ class PageOne:
                     temp_file.write(file.read())
                 file_paths[file.name] = file_path
 
-            # Read the shapefile using GeoPandas
-            try:
-                gdf = gpd.read_file(file_paths['Yamuna_segm_2km_UTF8.shp'])
-                st.write(gdf)
-                st.write('it worked !')
-            except Exception as e:
-                st.error(f"Error reading the shapefile: {e}")
-                return
-
             self.dgo_assetId, self.dgo_features = assets_management.uploadDGOs(file_paths['Yamuna_segm_2km_UTF8.shp'],  ee_project_name=self.ee_project_name, simplify_tolerance=15)
 
-            eef.add_line(dgo_dataset_path, self.town, self.river, self.dgo_assetId)
             for file_path in file_paths.values():
                 os.remove(file_path)
+
+            self.session_state['dgo_features'] = self.dgo_features
+            self.session_state['dgo_assetId'] = self.dgo_assetId
 
         self.update_map()
 
 if __name__ == "__main__":        
     pageOne = PageOne(st.session_state)
-    pageOne.show()
+    if st.session_state['authenticated'] == True : 
+        pageOne.show()
+    else : 
+        st.write('Please authenticate :blush:')

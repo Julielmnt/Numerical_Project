@@ -5,75 +5,115 @@ import ee_interface_function as eef
 import ee
 
 
-class PageOne:
-    cities_data = eef.cities('cities.txt')
+class PageTwo:
 
     def __init__(self, session_state):
-        self.title = "Loading DGOs"
-        self.shp_file = None
+        self.title = "Choosing metrics"
         self.ee_project_name = "ee-glourb"
-        self.dgo_features = None
         self.session_state = session_state
-        self.list_cities = list(self.cities_data.keys())
+        self.start = '1980-01-01'
+        self.end = '2030-12-31'
+        self.dgo_asset = self.session_state['dgo_assetId']
+        self.cloud_filter = 80
+        self.cloud_masking = True
+        self.mosaic_same_day = True
+        self.split_size = 25
+        self.run = st.session_state['run']
+        self.get_results = st.session_state['get_results']
+
+    def glourbmetrics_params(self):
+        glourbmetrics_params = {
+        'ee_project_name': self.ee_project_name,
+        'dgo_asset': self.dgo_asset,
+        'start': self.start,
+        'end': self.end,
+        'cloud_filter': self.cloud_filter,
+        'cloud_masking': True,
+        'mosaic_same_day': True,
+        'split_size': 25,
+    }
+        return glourbmetrics_params
+    
+
+    def metrics(self):
+        
+
+        st.write('Choose properties')
+        
+
+
 
     def show(self):
-        dgo_dataset_path = 'dgos_dataset.txt'
+        image_path = '..\logo.svg'  
+        st.image(image_path,  use_column_width=True, width=5)
 
-        if self.session_state['authenticated']:
-            st.title(self.title)
-            self.ee_project_name = st.text_input("Project Name", value=self.ee_project_name)
-            town = st.selectbox('Town', self.list_cities)
-            river = st.text_input('River')
+        st.title(self.title)
+        col1, col2 = st.columns(2)
+        start = col1.date_input('start')
+        self.start = start.strftime('%Y-%m-%d')
+        stop = col2.date_input('stop')
+        self.stop = stop.strftime('%Y-%m-%d')
+        self.cloud_filter= st.slider('cloud filter', min_value= 0, max_value= 100, value = 80)
+        self.cloud_masking = st.toggle('cloud masking', value = True)
+        self.mosaic_same_day = st.toggle('mosaic same day', value = True)
 
-            matching_lines = eef.dgo_to_search(town, river, dgo_dataset_path)
-            if river:
-                if len(matching_lines) != 0:
-                    st.write('Here are the dgos already loaded as assets for the same town and river')
-                    matching_lines = eef.dgo_to_search(town, river, dgo_dataset_path, print = True)
-
-
-                    st.write('Do you want to use the already uploaded asset or upload your own (it will take time and careful to not upload something already on the server)')
-                    col1, col2 = st.columns(2)
-                    if col1.button('Use already uploaded DGOs'):
-                        if len(matching_lines) > 1:
-                            i = st.number_input('Number of the asset you want', 1, len(matching_lines), step = 1)
-                            id = matching_lines[i-1].strip('|').split('|')[3]
-                            self.dgo_features = ee.FeatureCollection(id)
-                            if st.button('Display Map'):
-                                map_object = eef.plot_map(self.dgo_features)
-                                st.pydeck_chart(map_object)  
-
-                            
-
-                if col2.button('Upload my own DGOs'):
-                    st.write('Do you want to replace an already loaded asset ?')
-                    self.shp_file = st.file_uploader("Upload Shape file", type=["shp"])
-
-            
-            st.write(self.session_state)
-
-
-            
-
-
-            if self.shp_file:
-                shp_key_path = eef.temp_key_path(self.shp_file)
-                self.dgo_assetId, self.dgo_features = eef.assets(
-                    shp_key_path,
-                    ee_project_name=self.ee_project_name,
-                    simplify_tolerance=15,
-                )
-            
-
-            if self.dgo_features is not None:
-                if st.button("Display Map"):
-                    map_object = eef.plot_map(self.dgo_features)
-                    st.pydeck_chart(map_object)  
+        glourbmetrics_params = self.glourbmetrics_params()
+        self.run = st.button('Run', help = 'To start the workflow once you\'ve chosen your parameters')
         
+        if self.run or st.session_state['run']: 
+            from glourbee import workflow
+            if not st.session_state['run']:
+                st.session_state['run_id'] = workflow.startWorkflow(**glourbmetrics_params)
+                st.session_state['run'] = True
+
+            all_properties = [
+            'DATE',
+            'AC_AREA',
+            'CLOUD_SCORE',
+            'COVERAGE_SCORE',
+            'DATE_ACQUIRED',
+            'DGO_FID',
+            'MEAN_AC_MNDWI',
+            'MEAN_AC_NDVI',
+            'MEAN_MNDWI',
+            'MEAN_NDVI',
+            'MEAN_VEGETATION_MNDWI',
+            'MEAN_VEGETATION_NDVI',
+            'MEAN_WATER_MNDWI',
+            'VEGETATION_AREA',
+            'VEGETATION_PERIMETER',
+            'WATER_AREA',
+            'WATER_PERIMETER']
+
+            selected_properties = st.multiselect('Select properties', all_properties, default=all_properties)
+            st.write('The properties you selected :')
+            st.write(selected_properties)
+
+            self.get_results = st.button('Get results')
+            st.session_state['get_results'] = self.get_results
+
+            if st.session_state['run'] and st.session_state['get_results'] :
+                run_id = st.session_state['run_id']
+                eef.getResults(run_id, selected_properties, self.ee_project_name)
+                st.session_state['run'] = self.get_results
+
+        
+
+
+
+
+
+if __name__ == "__main__":
+    
+
+
+    
+    if st.session_state['authenticated'] == True : 
+        if st.session_state['dgo_assetId'] == None :
+            st.write('You need to load your dgos first :blush:')
         else : 
-            st.write('Please, authenticate first :)')
-
-
-if __name__ == "__main__":        
-    pageOne = PageOne(st.session_state)
-    pageOne.show()
+            pageTwo = PageTwo(st.session_state)
+            pageTwo.show()
+    else : 
+        st.write('Please authenticate :blush:')
+    

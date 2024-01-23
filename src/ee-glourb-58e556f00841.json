@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "ee-glourb",
+  "private_key_id": "58e556f00841dadab7506b98e7c904069db58084",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDN51zEu8wC9GR1\nfhaRq7bMQ2dwzEJZPuB3KzoBplOcGyWvn5HT0FfBAwVPg/ZN7Je8M4GIiI5Ad3+i\nNUetNCr3c0mQPFSqcDhT2xQY5rZxjFUU8Ics3NO+/ij+uGEN4De+bJl7KUgrTKx3\nDUIfIMdv4u+BtX77cptHlGt10Bb/S2bRreNAxRUmKebmqKf0igLMjjrCjufJgSgy\nOcY5S1cIKI0A3y68QiquYpd6joswwj+cFpRGfoU32rstXEyjfzuQj9paXdwhc2CI\nZfX62hn2dZUqJ/C56UpPu5kr2GG6eLTramXSmVNc8KBW3IIsMZM0rvuiJO6ppSPb\nBD0+FULPAgMBAAECggEABqrUkFCs+fYu4gvhkmgcf3lLAtpvtBlwUsDexumQqnVj\nYWnMBOsHfXsp9aioQJH5N9kGUMCwkfw7ipjUZ70/pMsVSnXUUq5oG/30E9g1u+eI\ndX4wHheCErY+kdqOCfvrWrUMvNg3w+ai5FxDrbkGzUpKT6dSeQp0//I7uaI6RxOM\nsbOfG31W12m5ZCJqZC3aiePCItEXYy01pkj4ocxCVPCjNjc6c3mVu+BywuAkv1cu\n2t+QkQBCeWZ4RyWr3SbRZ7m9pCyvcEgIF1+Bof0LfmWftBhEWDtcv0SXkRsF59hj\n+qTfAMQ10KS/+ytwHXjCQRxslYwRSSFR1Lc6ygJAQQKBgQDtqUVvsvrFnP3qqL/b\n64agicOtKvV7qPMqwOnLiur3Ow3505J8h9G0ClyS1egyNn3Ykha6d2Ggz3m2Em83\nEhKZBZQAmLkBWUqxr4a19b4pcpuWBDUaaagEShEcDKpS5Qa7rMDCOemGp3frFLwH\no2S8GoZXBzjA0GQ4DwUU5W4PUwKBgQDdysIrWG6782O7xr84OlSrH0oJCQYEF8PO\nLuOi6X3r+isG7iWw+l7A3vuyBL3gV5j3jQ2XFjwxBtuS741v0KqjO7nmfUs/IPHS\nf21AOcSt9eqRTzFSCgiSAmqMhNfFh1oHa0ZcNYplww8eZVuHzpDIJK0zEYwSEjMu\nfqnXUwbbFQKBgQCJzUxlp/GgA5d3KMGWUsqM61R6ZB5SxXO5poHpc3MqRyOjZ/nY\nGyiMrDVhLoakFtSBbrOfCvmgtKxt1eKGnAQMlh9q+SLMlWmp/YyulP7eKYXtRiNE\nXV7+nbOt/+oChqmQyGo8NDgjy5bMyAj+pM8UAo1CiP1vT2XM22im5SEb4QKBgQCB\nZHrnAs6HhDUZJZgFW7JtqvFsWAFUffDT5vMS5hl6hBZ6EpGWsFp7Nxur/awwp6os\nMfRNwsEW8SNEk9D1/MywMnYAC/TMPZIW9hRstccSnjdc0tC5RfU+CX7Tv+SJ7q8N\nSP5haTL2r1ewqf0+O7qnqQ4KjyAios+NPoQjhOKpCQKBgBPM47Lj+KmpPfbbh3su\nLxY84vZWcEqQJ/XanAvNcBqTU4U6ly2eWWKyZ58Z6yxoIff2EHT5Fv3xw/Rrd5um\n2nUSH6tf+TN4ugzDGsnyxbnrbQZP8I/XCmCfJNFkMf/zBJD578p35yVxJHJ5PJAR\n9Nk3XKUIW6nKYMmDAQYj/6gq\n-----END PRIVATE KEY-----\n",
+  "client_email": "jlimonet@ee-glourb.iam.gserviceaccount.com",
+  "client_id": "104946880597572944192",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/jlimonet%40ee-glourb.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
