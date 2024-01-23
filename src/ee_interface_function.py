@@ -83,32 +83,26 @@ def cities(file_path = 'cities.txt'):
     
     return(city_data)
 
-def dgo_to_search(town_to_search, river_to_search, dgo_dataset_path = 'dgos_dataset.txt', print = False):
-    with open(dgo_dataset_path, 'r') as file:
-        lines = file.readlines()
+def dgo_to_search(town_to_search, river_to_search):
+    
+    list_assets = ee.data.listAssets('projects/ee-glourb/assets/dgos')['assets']
+    id=[]
+    update_times = []
+    for i in range(len(list_assets)):
+            id.append(ee.data.listAssets('projects/ee-glourb/assets/dgos')['assets'][i]['id'])
+            update_times.append(ee.data.listAssets('projects/ee-glourb/assets/dgos')['assets'][i]['updateTime'])
 
-    matching_lines = [line for line in lines if town_to_search.lower() in line.lower() and river_to_search.lower() in line.lower()]
+    matching_lines = []
+    matching_times = []
+    for i in range(len(list_assets)):
+        if town_to_search.lower() in id[i].lower() or river_to_search.lower() in id[i].lower():
+            matching_lines.append(id[i])
+            matching_times.append(update_times[i])
 
-    if print == True:
-        for i,line in enumerate(matching_lines):
-            line_parts = line.strip('|').split('|')
-            st.write(f'{i+1}- River : {line_parts[0]}, Town : {line_parts[1]}, Uploaded time = {line_parts[2]} \nand id = {line_parts[3]}')
-            
-    return matching_lines
+    
+    return matching_lines, matching_times
 
-def remove_line_by_criteria(file_path, town, river, id_to_remove, update_time):
-    with open(file_path, 'r') as file:
-        lines = file.readlines()
-
-    for i, line in enumerate(lines):
-        if town in line and river in line and id_to_remove in line and update_time in line:
-            del lines[i]
-            break
-
-    # Write the modified content back to the text file
-    with open(file_path, 'w') as file:
-        file.writelines(lines)
-
+def remove_line_by_criteria( id_to_remove):
     asset_path_to_delete = id_to_remove
     try:
         ee.data.deleteAsset(asset_path_to_delete)
@@ -236,8 +230,57 @@ def uploadDGOs(dgo_shapefile, file_name, simplify_tolerance=15, ee_project_name=
         
 
 """-----------------------------------------------------------------------------------------------------------------
------------------------------------------------------- DGOs --------------------------------------------------------
+------------------------------------------------------ Metrics --------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------"""
+
+def getResults(run_id, properties_list, ee_project_name, overwrite=False, remove_tmp=False):
+    ee_tasks = ee.data.getTaskList()
+    stacked_uris = [t['destination_uris'] for t in ee_tasks if f'run {run_id}' in t['description'] and t['state'] == 'COMPLETED']
+    uris = [uri.split(f'{ee_project_name}/assets/')[1] for sublist in stacked_uris for uri in sublist]
+
+    assets = [f'projects/{ee_project_name}/assets/{uri}' for uri in uris]
+    temp_csv_list = [os.path.join(tempdir, f'{os.path.basename(a)}.tmp.csv') for a in assets]
+
+    
+
+    # Create a list to store data for Streamlit file download
+    download_data = []
+
+    for assetName, path in zip(assets, temp_csv_list):
+        if not os.path.exists(path) or overwrite:
+            asset = ee.FeatureCollection(assetName)
+            clean_fc = asset.select(propertySelectors=properties_list, retainGeometry=False)
+
+            try:
+                # Use Streamlit's st.file_download to add data for download
+                st.file_download(path, label=f'Download {os.path.basename(assetName)} CSV')
+            except HTTPError:
+                # Handle the case if download fails
+                st.warning(f"Failed to download {os.path.basename(assetName)} CSV.")
+
+                # If it's impossible to download the cleaned asset, download the complete asset and clean it locally
+                st.info(f"Downloading the complete asset {os.path.basename(assetName)} and cleaning it locally.")
+                urlretrieve(asset.getDownloadUrl(), path)
+                df = pd.read_csv(path, index_col=None, header=0)
+                df = df[properties_list]
+                df.to_csv(path)
+        else:
+            continue
+
+        # Add data for Streamlit file download
+        download_data.append({
+            'asset_name': os.path.basename(assetName),
+            'file_path': path
+        })
+
+    # You can use download_data for customizing download behavior in Streamlit
+    st.write(download_data)
+
+    # You may choose to remove the temporary files if needed
+    if remove_tmp:
+        for filename in temp_csv_list:
+            os.remove(filename)
+
 
 def run():
     pass
