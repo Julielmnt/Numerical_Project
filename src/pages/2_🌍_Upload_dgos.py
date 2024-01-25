@@ -1,12 +1,24 @@
+"""Page of the interface for uploading dgos
+
+"""
+
 import streamlit as st
 import ee_interface_function as eef
 import ee
 import folium
+import os
 from streamlit_folium import folium_static
 
-class PageOne:
-    cities_data = eef.cities('cities.txt')
+current_directory = os.getcwd()
+cities_data = eef.cities(f'{current_directory}\cities.txt')
 
+class PageOne:
+    """PageOne class to show the Upload dgos page of the app 
+
+    gives different options for loading dgos, uploading to Earth Engine or getting them from it.
+    Shows a map centered on them
+
+    """
     def __init__(self, session_state):
         self.title = "Upload DGOs"
         self.shp_file = None
@@ -35,11 +47,12 @@ class PageOne:
         folium_static(m)
 
     def show(self):
-        image_path = '..\logo.svg'  
+        print(f'current directory : {current_directory}')
+        image_path = f'{current_directory}\logo.svg'
         st.image(image_path,  use_column_width=True, width=5)
 
         st.title(self.title)
-        st.write('Here you can upload your DGOs or get them directly from GEE is they\'re already loaded (this is faster)')
+        st.write('Here you can upload your DGOs or get them directly from GEE is they\'ve already been uploaded as assets (this is faster)')
 
         self.town = st.selectbox('Town', self.list_cities, help = 'Choose the town you are working on')
         self.river = st.text_input('River', help = 'The name of your river')
@@ -86,7 +99,7 @@ class PageOne:
                             i = None
 
                         if i is not None:
-                            st.write(f'You\'re removing the asset number {i+1} with the id: {id_to_remove}')
+                            st.write(f'You\'re removing the asset number {i} with the id: {id_to_remove}')
                             if st.button('Confirm'):
                                 eef.remove_line_by_criteria(id_to_remove)
                                 st.markdown('<span style="color:green">Thanks for keeping the server clean !</span> :grin:' , unsafe_allow_html=True)

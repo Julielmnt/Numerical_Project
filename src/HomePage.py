@@ -1,3 +1,7 @@
+"""Home Page of the Interface
+"""
+
+
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
@@ -7,9 +11,16 @@ import os
 import argparse
 import ee
 from streamlit.runtime.scriptrunner import RerunData, RerunException
-from streamlit.source_util import get_pages
+
+
+
+def run_streamlit():
+    
+    os.system('Streamlit run .\src\Homepage.py')
 
 class MultiPageApp:
+    """_summary_
+    """
     def __init__(self):
         self.session_state = self.get_session_state()
 
@@ -24,9 +35,10 @@ class MultiPageApp:
             "key_path": ""
     }
 
-
     def run(self):
-        image_path = '..\logo.svg'  
+        current_directory = os.getcwd()
+        print(f'current directory : {current_directory}')
+        image_path = f'{current_directory}\logo.svg'  
         st.image(image_path,  use_column_width=True, width=50)
 
         st.title("GEE Interface")
@@ -46,8 +58,6 @@ if __name__ == "__main__":
     app = MultiPageApp()
     
     app.run()
-
-
 
 
 # def run():

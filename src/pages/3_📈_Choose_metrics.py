@@ -1,12 +1,19 @@
+""" Page for choosing the metrics in the interface
+"""
 import streamlit as st
-
 import streamlit as st
 import ee_interface_function as eef
 import ee
+import tempfile
+import os
 
 
 class PageTwo:
+    """PageTwo class for choosing and downlloading the metrics
 
+    Let the user choose it's metrics and builds the csv file for downloading.
+
+    """
     def __init__(self, session_state):
         self.title = "Choosing metrics"
         self.ee_project_name = "ee-glourb"
@@ -20,6 +27,8 @@ class PageTwo:
         self.split_size = 25
         self.run = st.session_state['run']
         self.get_results = st.session_state['get_results']
+        self.task = None
+        st.session_state['tempdir'] = tempfile.mkdtemp(prefix='glourbee_')
 
     def glourbmetrics_params(self):
         glourbmetrics_params = {
@@ -33,18 +42,10 @@ class PageTwo:
         'split_size': 25,
     }
         return glourbmetrics_params
-    
-
-    def metrics(self):
-        
-
-        st.write('Choose properties')
-        
-
-
 
     def show(self):
-        image_path = '..\logo.svg'  
+        current_directory = os.getcwd()
+        image_path = f'{current_directory}\logo.svg'
         st.image(image_path,  use_column_width=True, width=5)
 
         st.title(self.title)
@@ -59,7 +60,7 @@ class PageTwo:
 
         glourbmetrics_params = self.glourbmetrics_params()
         self.run = st.button('Run', help = 'To start the workflow once you\'ve chosen your parameters')
-        
+
         if self.run or st.session_state['run']: 
             from glourbee import workflow
             if not st.session_state['run']:
@@ -89,25 +90,20 @@ class PageTwo:
             st.write('The properties you selected :')
             st.write(selected_properties)
 
+            
+            self.task = st.button('Check the advancement of the tasks') 
+            if self.task:
+                eef.workflowState(st.session_state['run_id'])
+
             self.get_results = st.button('Get results')
             st.session_state['get_results'] = self.get_results
 
             if st.session_state['run'] and st.session_state['get_results'] :
-                run_id = st.session_state['run_id']
-                eef.getResults(run_id, selected_properties, self.ee_project_name)
+                eef.getResults(st.session_state['run_id'], selected_properties, self.ee_project_name, st.session_state['tempdir'])
                 st.session_state['run'] = self.get_results
 
-        
-
-
-
-
-
+    
 if __name__ == "__main__":
-    
-
-
-    
     if st.session_state['authenticated'] == True : 
         if st.session_state['dgo_assetId'] == None :
             st.write('You need to load your dgos first :blush:')

@@ -1,3 +1,9 @@
+"""File containing numerous functions used for the Glourbinterface. Some of this functions are just adapted from the 
+functions developped by Samuel Dunesme.
+
+see : https://github.com/EVS-GIS/glourbee
+
+"""
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
@@ -10,43 +16,77 @@ import os
 import numpy as np
 
 
-
-
 """-----------------------------------------------------------------------------------------------------------------
 -------------------------------------------------- Authentication --------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------"""
 
-def credentials(mail = 'jlimonet@ee-glourb.iam.gserviceaccount.com', key1 = './ee-glourb-58e556f00841.json' , key2 = './ee-glourb-58e556f00841.json'):
+
+def credentials(
+    mail="jlimonet@ee-glourb.iam.gserviceaccount.com",
+    key1="./ee-glourb-58e556f00841.json",
+    key2="./ee-glourb-58e556f00841.json",
+):
+    """
+    Connects to Google Earth Engine using the mail and key provided by the user
+    """
     if key1 != "":
         try:
             credentials = ee.ServiceAccountCredentials(mail, key1)
             ee.Initialize(credentials)
-            return(True)
-            
+            return True
+
         except ee.EEException as e:
-            return(False) 
-        
+            return False
+
     if key2 != "":
         try:
             credentials = ee.ServiceAccountCredentials(mail, key2)
             ee.Initialize(credentials)
-            return(True)
-            
+            return True
+
         except ee.EEException as e:
-            return(False)
+            return False
+
 
 """-----------------------------------------------------------------------------------------------------------------
 ------------------------------------------------------ DGOs --------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------"""
 
-def upload_dgos(DGO = './example_data/Yamuna_segm_2km_UTF8.shp' , ee_project_name = 'ee-glourb'):
+
+def upload_dgos(
+    DGO="./example_data/Yamuna_segm_2km_UTF8.shp", ee_project_name="ee-glourb"
+):
+    """Returns the dgos already uploaded to Earth Engine for the same project
+
+    Parameters
+    ----------
+    DGO : str, optional
+        id of the wanted asset, by default './example_data/Yamuna_segm_2km_UTF8.shp'
+    ee_project_name : str, optional
+        name of the project in Google Earth Engine, by default 'ee-glourb'
+    """
     from glourbee import assets_management
-    dgo_assetId, dgo_features = assets_management.uploadDGOs(DGO, ee_project_name=ee_project_name, simplify_tolerance=15)
-    return(dgo_assetId, dgo_features)
+
+    dgo_assetId, dgo_features = assets_management.uploadDGOs(
+        DGO, ee_project_name=ee_project_name, simplify_tolerance=15
+    )
+    return (dgo_assetId, dgo_features)
 
 
+def display_map(title, location=[0, 0], dgo_features=None, zoom=8):
+    """Displays a map centered on the location in Streamlit
 
-def display_map(title, location = [0,0], dgo_features = None, zoom = 8):
+    Parameters
+    ----------
+    title : str
+        title of the map
+    location : list, optional
+        tuple of the latitude, longitude to be centered on, by default [0,0]
+    dgo_features : _type_, optional
+        dgos that can be added on the map, by default None
+    zoom : int, optional
+        Zoom on the map, by default 8
+    """
     import folium
     import geemap
     from streamlit_folium import folium_static
@@ -56,115 +96,122 @@ def display_map(title, location = [0,0], dgo_features = None, zoom = 8):
 
     if dgo_features:
         features = dgo_features
-        folium.GeoJson(data=features.getInfo(), name='DGO Features').add_to(m)
+        folium.GeoJson(data=features.getInfo(), name="DGO Features").add_to(m)
 
-    return(m)
+    return m
 
 
-def cities(file_path = 'cities.txt'):
+def cities(file_path="cities.txt"):
+    """Gets the list and position of the cities studied in GloUrb
+
+    Parameters
+    ----------
+    file_path : str, optional
+        _description_ file containing the information
+    """
     import re
-    with open(file_path, 'r') as file:
+
+    with open(file_path, "r") as file:
         lines = file.readlines()
 
-    pattern = re.compile(r'(\S+),\((-?\d+\.\d+),(-?\d+\.\d+),(-?\d+\.\d+),(-?\d+\.\d+)\)')
+    pattern = re.compile(
+        r"(\S+),\((-?\d+\.\d+),(-?\d+\.\d+),(-?\d+\.\d+),(-?\d+\.\d+)\)"
+    )
 
-    # Create a dictionary to store the extracted data
     city_data = {}
 
-    # Iterate over the lines and extract data
     for line in lines:
         match = pattern.match(line)
         if match:
             city_name, lat1, lon1, lat2, lon2 = match.groups()
             city_data[city_name] = {
-                'latitude': (float(lat1) + float(lat2)) /2,
-                'longitude': (float(lon1) + float(lon2)) / 2,
-        }
-    
-    return(city_data)
+                "latitude": (float(lat1) + float(lat2)) / 2,
+                "longitude": (float(lon1) + float(lon2)) / 2,
+            }
+
+    return city_data
+
 
 def dgo_to_search(town_to_search, river_to_search):
-    
-    list_assets = ee.data.listAssets('projects/ee-glourb/assets/dgos')['assets']
-    id=[]
+    """Gets the dgos from GEE that match the town_to_search and/or river_to_search
+
+    Parameters
+    ----------
+    town_to_search : str
+        town studied
+    river_to_search : str
+        river studied
+
+    Returns
+    -------
+    list
+        list of the matching dgos id and time of upload
+    """
+    list_assets = ee.data.listAssets("projects/ee-glourb/assets/dgos")["assets"]
+    id = []
     update_times = []
     for i in range(len(list_assets)):
-            id.append(ee.data.listAssets('projects/ee-glourb/assets/dgos')['assets'][i]['id'])
-            update_times.append(ee.data.listAssets('projects/ee-glourb/assets/dgos')['assets'][i]['updateTime'])
+        id.append(
+            ee.data.listAssets("projects/ee-glourb/assets/dgos")["assets"][i]["id"]
+        )
+        update_times.append(
+            ee.data.listAssets("projects/ee-glourb/assets/dgos")["assets"][i][
+                "updateTime"
+            ]
+        )
 
     matching_lines = []
     matching_times = []
     for i in range(len(list_assets)):
-        if town_to_search.lower() in id[i].lower() or river_to_search.lower() in id[i].lower():
+        if (
+            town_to_search.lower() in id[i].lower()
+            or river_to_search.lower() in id[i].lower()
+        ):
             matching_lines.append(id[i])
             matching_times.append(update_times[i])
 
-    
     return matching_lines, matching_times
 
-def remove_line_by_criteria( id_to_remove):
+
+def remove_line_by_criteria(id_to_remove):
+    """Removes a dgo uploaded on GEE by its id
+
+    Parameters
+    ----------
+    id_to_remove : str
+        id of the dgo to remove
+    """
     asset_path_to_delete = id_to_remove
     try:
         ee.data.deleteAsset(asset_path_to_delete)
 
     except Exception as e:
-                st.error(f"Error: {str(e)}")
-
-def add_line(file_path, town, river, id_to_add):
-    with open(file_path, 'r') as file:
-        lines = file.readlines()
-    import pandas as pd
-    from datetime import datetime
-
-    df = pd.DataFrame({
-        'river': river,
-        'town': town,
-        'update_time': [datetime.now().strftime("%Y-%m-%d %H:%M")],
-        'asset_id': id_to_add
-    })
-    formatted_rows = df.apply(lambda row: f"|{row['river']}|{row['town']}|{row['update_time']}|{row['asset_id']}|\n", axis=1)
-
-    # Save the formatted rows to a text file
-    with open('dgos_dataset.txt', 'a') as file:
-        file.write("".join(formatted_rows))
+        st.error(f"Error: {str(e)}")
 
 
-def temp_file_path(uploaded_file):
-    # Extract the original file name
-    original_filename = uploaded_file.filename  # Assuming the uploaded file has a 'filename' attribute
+def uploadDGOs(dgo_shapefile, file_name, simplify_tolerance=15, ee_project_name="ee-glourb"):
+    """Function to upload dgos to GEE.
 
-    # Create a temporary file with the same name and a .shp extension
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".shp", prefix=os.path.splitext(original_filename)[0] + "_", mode='wb') as temp_file:
-        # Write uploaded file content to the temporary file
-        temp_file.write(uploaded_file.read())
+    Parameters
+    ----------
+    dgo_shapefile : .shp
+        shapefile containing the dgos
 
-        # Get the path of the temporary file
-        uploaded_file_path = temp_file.name
+    file_name : str
+        Name of the shape file
+    
+    simplify_tolerance : int
+        parameter for the upload
 
-    return uploaded_file_path
-
-def uploadDGOs(dgo_shapefile, file_name, simplify_tolerance=15, ee_project_name='ee-glourb'):
+    ee_project_name : str
+        name of the project on GEE
+    """
     from fiona import drvsupport
-    import fiona    
+    import fiona
     from glourbee import assets_management
-    # Check if drvsupport is None
-    # if drvsupport is None:
-    #     drvsupport = gpd.io.file.fiona._loading.supported_drivers
-    # else:
-    #     # Set SHAPE_RESTORE_SHX to YES
-    #     drvsupport.supported_drivers['ESRI Shapefile'] = 'YES'
 
-    # # Save the uploaded file to a temporary file
-    # temp_file_path = f'./{file_name}'
-    # with open(temp_file_path, 'wb') as temp_file:
-    #     temp_file.write(dgo_shapefile.read())
-
-    # # Enable support for ESRI Shapefile
-    # fiona.drvsupport.supported_drivers['ESRI Shapefile'] = 'YES'
-
-    # Read the shapefile using GeoPandas
     gdf = gpd.read_file(dgo_shapefile)
-    gdf['geometry'] = gdf.simplify(simplify_tolerance)
+    gdf["geometry"] = gdf.simplify(simplify_tolerance)
 
     # If there are fewer than 80 DGOs, import directly into GEE
     if gdf.shape[0] <= 80:
@@ -172,10 +219,14 @@ def uploadDGOs(dgo_shapefile, file_name, simplify_tolerance=15, ee_project_name=
         dgo_shp = geemap.gdf_to_ee(gdf)
 
         # Upload the asset
-        assetName = f'{os.path.splitext(os.path.basename(file_name))[0]}_{uuid.uuid4().hex}'
-        assetId = f'projects/{ee_project_name}/assets/dgos/{assetName}'
-        
-        if assets_management.uploadAsset(dgo_shp, 'DGOs uploaded from glourbee notebook', assetId):
+        assetName = (
+            f"{os.path.splitext(os.path.basename(file_name))[0]}_{uuid.uuid4().hex}"
+        )
+        assetId = f"projects/{ee_project_name}/assets/dgos/{assetName}"
+
+        if assets_management.uploadAsset(
+            dgo_shp, "DGOs uploaded from glourbee notebook", assetId
+        ):
             # Return the exported asset and its ID
             return assetId, ee.FeatureCollection(assetId)
         else:
@@ -193,18 +244,21 @@ def uploadDGOs(dgo_shapefile, file_name, simplify_tolerance=15, ee_project_name=
             dgo_shp = geemap.gdf_to_ee(subgdf)
 
             # Upload the asset
-            assetName = f'{os.path.splitext(os.path.basename(file_name))[0]}_{uuid.uuid4().hex}'
-            assetId = f'projects/{ee_project_name}/assets/dgos/tmp/{assetName}'
-            taskid = assets_management.uploadAsset(dgo_shp, 'DGOs uploaded from glourbee notebook', assetId, wait=False)
+            assetName = (
+                f"{os.path.splitext(os.path.basename(file_name))[0]}_{uuid.uuid4().hex}"
+            )
+            assetId = f"projects/{ee_project_name}/assets/dgos/tmp/{assetName}"
+            taskid = assets_management.uploadAsset(
+                dgo_shp, "DGOs uploaded from glourbee notebook", assetId, wait=False
+            )
 
             if taskid:
                 # Add the assetId to the list to merge
                 assets_list.append(assetId)
-
                 # Add the taskid to the list of tasks to monitor
                 task_list.append(taskid)
 
-                print(f'Import DGOs part {n + 1}/{len(splitted_gdf)} started.')
+                print(f"Import DGOs part {n + 1}/{len(splitted_gdf)} started.")
             else:
                 return  # TODO: replace by raise error
 
@@ -212,13 +266,17 @@ def uploadDGOs(dgo_shapefile, file_name, simplify_tolerance=15, ee_project_name=
         assets_management.waitTasks(task_list=task_list)
 
         # Merge the uploaded assets into one
-        output_fc = ee.FeatureCollection([ee.FeatureCollection(asset) for asset in assets_list]).flatten()
+        output_fc = ee.FeatureCollection(
+            [ee.FeatureCollection(asset) for asset in assets_list]
+        ).flatten()
 
         # Upload the asset
-        assetName = f'{os.path.splitext(os.path.basename(file_name))[0]}_final_{uuid.uuid4().hex}'
-        assetId = f'projects/{ee_project_name}/assets/dgos/{assetName}'
-        
-        if assets_management.uploadAsset(output_fc, 'DGOs uploaded from glourbee notebook', assetId):
+        assetName = f"{os.path.splitext(os.path.basename(file_name))[0]}_final_{uuid.uuid4().hex}"
+        assetId = f"projects/{ee_project_name}/assets/dgos/{assetName}"
+
+        if assets_management.uploadAsset(
+            output_fc, "DGOs uploaded from glourbee notebook", assetId
+        ):
             # Delete temporary assets
             for asset in assets_list:
                 ee.data.deleteAsset(asset)
@@ -227,21 +285,53 @@ def uploadDGOs(dgo_shapefile, file_name, simplify_tolerance=15, ee_project_name=
             return assetId, ee.FeatureCollection(assetId)
         else:
             return  # TODO: replace by raise error
-        
+
 
 """-----------------------------------------------------------------------------------------------------------------
 ------------------------------------------------------ Metrics --------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------------"""
 
-def getResults(run_id, properties_list, ee_project_name, overwrite=False, remove_tmp=False):
+
+def getResults(
+    run_id, properties_list, ee_project_name, tempdir, overwrite=False, remove_tmp=False
+):
+    """Function to get the csv file containing the metrics
+
+    Parameters
+    ----------
+    run_id : str
+        id of the task
+    properties_list : list
+        list of the metrics to calculate
+    ee_project_name : str
+        name of the project
+    tempdir : directory
+        tempory directory
+    overwrite : bool, optional
+        option to overwrite the file, by default False
+    remove_tmp : bool, optional
+        option to remove the temporary file , by default False
+    """
+    from urllib.error import HTTPError
+    from urllib.request import urlretrieve
+    import pandas as pd
+
     ee_tasks = ee.data.getTaskList()
-    stacked_uris = [t['destination_uris'] for t in ee_tasks if f'run {run_id}' in t['description'] and t['state'] == 'COMPLETED']
-    uris = [uri.split(f'{ee_project_name}/assets/')[1] for sublist in stacked_uris for uri in sublist]
+    stacked_uris = [
+        t["destination_uris"]
+        for t in ee_tasks
+        if f"run {run_id}" in t["description"] and t["state"] == "COMPLETED"
+    ]
+    uris = [
+        uri.split(f"{ee_project_name}/assets/")[1]
+        for sublist in stacked_uris
+        for uri in sublist
+    ]
 
-    assets = [f'projects/{ee_project_name}/assets/{uri}' for uri in uris]
-    temp_csv_list = [os.path.join(tempdir, f'{os.path.basename(a)}.tmp.csv') for a in assets]
-
-    
+    assets = [f"projects/{ee_project_name}/assets/{uri}" for uri in uris]
+    temp_csv_list = [
+        os.path.join(tempdir, f"{os.path.basename(a)}.tmp.csv") for a in assets
+    ]
 
     # Create a list to store data for Streamlit file download
     download_data = []
@@ -249,17 +339,23 @@ def getResults(run_id, properties_list, ee_project_name, overwrite=False, remove
     for assetName, path in zip(assets, temp_csv_list):
         if not os.path.exists(path) or overwrite:
             asset = ee.FeatureCollection(assetName)
-            clean_fc = asset.select(propertySelectors=properties_list, retainGeometry=False)
+            clean_fc = asset.select(
+                propertySelectors=properties_list, retainGeometry=False
+            )
 
             try:
                 # Use Streamlit's st.file_download to add data for download
-                st.file_download(path, label=f'Download {os.path.basename(assetName)} CSV')
+                st.file_download(
+                    path, label=f"Download {os.path.basename(assetName)} CSV"
+                )
             except HTTPError:
                 # Handle the case if download fails
                 st.warning(f"Failed to download {os.path.basename(assetName)} CSV.")
 
                 # If it's impossible to download the cleaned asset, download the complete asset and clean it locally
-                st.info(f"Downloading the complete asset {os.path.basename(assetName)} and cleaning it locally.")
+                st.info(
+                    f"Downloading the complete asset {os.path.basename(assetName)} and cleaning it locally."
+                )
                 urlretrieve(asset.getDownloadUrl(), path)
                 df = pd.read_csv(path, index_col=None, header=0)
                 df = df[properties_list]
@@ -268,10 +364,9 @@ def getResults(run_id, properties_list, ee_project_name, overwrite=False, remove
             continue
 
         # Add data for Streamlit file download
-        download_data.append({
-            'asset_name': os.path.basename(assetName),
-            'file_path': path
-        })
+        download_data.append(
+            {"asset_name": os.path.basename(assetName), "file_path": path}
+        )
 
     # You can use download_data for customizing download behavior in Streamlit
     st.write(download_data)
@@ -282,7 +377,41 @@ def getResults(run_id, properties_list, ee_project_name, overwrite=False, remove
             os.remove(filename)
 
 
+def workflowState(run_id):
+    """gives the state of the workflow
+
+    Parameters
+    ----------
+    run_id : str
+        id of the task
+
+    Returns
+    -------
+    str
+        number of tasks in each state
+    """
+    ee_tasks = ee.data.getTaskList()
+    tasks = [t for t in ee_tasks if f"run {run_id}" in t["description"]]
+
+    # Check all tasks
+    completed = len([t for t in tasks if t["state"] == "COMPLETED"])
+    running = len([t for t in tasks if t["state"] == "RUNNING"])
+    pending = len([t for t in tasks if t["state"] == "PENDING"])
+    ready = len([t for t in tasks if t["state"] == "READY"])
+    failed = len([t for t in tasks if t["state"] == "FAILED"])
+
+    st.write(f"{completed} tasks completed.")
+    st.write(f"{running} tasks running.")
+    st.write(f"{pending} tasks pending.")
+    st.write(f"{ready} tasks ready.")
+    st.write(f"{failed} tasks failed.")
+
+    return tasks
+
+
 def run():
     pass
-if __name__ == '__main__':
+
+
+if __name__ == "__main__":
     run()
