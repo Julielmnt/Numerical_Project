@@ -1,5 +1,5 @@
 [project]
-name = "GEE_interface" #what you write after pip install
+name = "glourbinterface" #what you write after pip install
 version = "0.0.1" # 0.0.x generaly means it is unstable
 authors = [
   { name="Julie Limonet", email="julie.limonet@gmail.com" },
@@ -29,8 +29,14 @@ Documentation = "https://readthedocs.org"
 Repository = "https://github.com/me/spam.git"
 Changelog = "https://github.com/me/spam/blob/master/CHANGELOG.md"
 
+
+
 [project.scripts]
-GEE_interface = 'interface:run'
+glourbinterface = "HomePage:run_streamlit"
 
 
+#[tool.poetry.scripts]
+#run_glourbinterface = "streamlit run .\\src\\HomePage.py"
 
+#[tool.poetry.scripts."glourbinterface"]
+#command = "run_glourbinterface"

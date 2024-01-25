@@ -28,6 +28,16 @@ def credentials(
 ):
     """
     Connects to Google Earth Engine using the mail and key provided by the user
+
+    Parameters
+    ----------
+    mail : str
+        mail of the user, by default "jlimonet@ee-glourb.iam.gserviceaccount.com"
+    key1 : str
+        path to their json file, by default "./ee-glourb-58e556f00841.json"
+    key2 : str
+        path to their json file if they uploaded it through the streamlit file_uploader,
+        by default "./ee-glourb-58e556f00841.json"
     """
     if key1 != "":
         try:
@@ -189,7 +199,9 @@ def remove_line_by_criteria(id_to_remove):
         st.error(f"Error: {str(e)}")
 
 
-def uploadDGOs(dgo_shapefile, file_name, simplify_tolerance=15, ee_project_name="ee-glourb"):
+def uploadDGOs(
+    dgo_shapefile, file_name, simplify_tolerance=15, ee_project_name="ee-glourb"
+):
     """Function to upload dgos to GEE.
 
     Parameters
@@ -199,7 +211,7 @@ def uploadDGOs(dgo_shapefile, file_name, simplify_tolerance=15, ee_project_name=
 
     file_name : str
         Name of the shape file
-    
+
     simplify_tolerance : int
         parameter for the upload
 
