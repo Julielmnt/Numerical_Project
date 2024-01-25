@@ -2,7 +2,8 @@
 
 ## Summary
 This is a project to implement an interface for the [GloUrb](https://glourb.universite-lyon.fr/) project. This is a multidisciplinary project studying the effect of urbanization on alluvial plains. They use [Google Earth Engine](https://earthengine.google.com/) to study the evolution of different parameters such as vegetation indices or water indices over time, using data from satellites.
-Samuel Dunesme and Barbara Belletti have been extracting their metrics using python : this is the [GloUrbEE](https://github.com/EVS-GIS/glourbee) project, which a lot of the code presented here relies on. Since a lot of the colllaborators of the project aren't used to programming, Glourbinterface has the goal of providing an interface for them to extract their data without diving into code. 
+Samuel Dunesme and Barbara Belletti have been extracting their metrics using python : this is the [GloUrbEE](https://github.com/EVS-GIS/glourbee) project, which a lot of the code presented here relies on. Since a lot of the collaborators of the project aren't used to programming, Glourbinterface has the goal of providing an interface for them to extract their data without diving into code.
+The entire "glourbee" package has been developped by Samuel Dunesme. 
 
 ## Usage
 You first need to clone the github repository. 
